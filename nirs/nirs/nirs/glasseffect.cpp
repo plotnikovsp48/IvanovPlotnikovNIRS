@@ -1,8 +1,8 @@
 #include"glasseffect.h"
 
-uchar glasseffect(Mat img, int i, int j, int nn)
+uchar glasseffect(Mat img, int i, int j, int r)
 {
-	int r = nn - 2;
+	//int r = nn - 2;
 
 	int dx = abs(img.at<uchar>(i, j - r) - img.at<uchar>(i, j + r));
 	int dy = abs(img.at<uchar>(i - r, j) - img.at<uchar>(i + r, j));
