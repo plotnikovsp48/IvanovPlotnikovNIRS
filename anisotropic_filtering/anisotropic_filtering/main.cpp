@@ -8,6 +8,7 @@ int main(int argc, char ** argv)
 	bool show_time = false;
 	bool verbose = false;
 	bool show_other_filters = false;
+	int iterations = 1;
 	
 	if ( argc > 1 )
 		src = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
@@ -40,6 +41,8 @@ int main(int argc, char ** argv)
 					verbose = true;
 				if ( parm[i] == 'o' )
 					show_other_filters = true;
+				if ( '2' <= parm[i] && parm[i] <= '9' )
+					iterations = (parm[i] - '0');
 			}
 		}
 	}
@@ -60,7 +63,6 @@ int main(int argc, char ** argv)
 
 	//restoration
 	double t;
-	int iterations = 1;
 	int r = 1;
 	int w = dst.cols;
 	int h = dst.rows;
@@ -98,12 +100,12 @@ int main(int argc, char ** argv)
 	GaussianBlur(noisy, gaussian, Size(3,3), 0.0);
 
 	/*  OUTPUT  */
-	imwrite("aff(3*3).bmp",    dst);
+	imwrite("aff_3x3.bmp",    dst);
 	
 	if( show_other_filters )
 	{
-		imwrite("gauss(3*3).bmp",  gaussian);
-		imwrite("median(3*3).bmp", median);
+		imwrite("gauss_3x3.bmp",  gaussian);
+		imwrite("median_3x3.bmp", median);
 	}
 
 	if ( verbose )
