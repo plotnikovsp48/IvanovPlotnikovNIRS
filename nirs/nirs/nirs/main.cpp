@@ -5,7 +5,7 @@ int main()
 	Mat img1 = imread("test2.jpg", 1);
 
 	//imshow("win_name", img);
-	//imwrite("rec.jpg", img); //сохранение картинки
+	//imwrite("rec.jpg", img); //СЃРѕС…СЂР°РЅРµРЅРёРµ РєР°СЂС‚РёРЅРєРё
 	int w = img1.cols;
 	int h = img1.rows;
 	Mat img;
@@ -24,7 +24,7 @@ int main()
 	srand((unsigned)time(0));
 	for (int i = 0; i < w*h*.25; i++)
 	{
-		img1.at<uchar>(rand() % h, rand() % w) = uchar(rand() % 256);//высота на ширину
+		img1.at<uchar>(rand() % h, rand() % w) = uchar(rand() % 256);//РІС‹СЃРѕС‚Р° РЅР° С€РёСЂРёРЅСѓ
 	}
 
 
