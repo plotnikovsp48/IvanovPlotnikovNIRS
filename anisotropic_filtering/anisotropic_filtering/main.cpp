@@ -5,9 +5,9 @@ int main(int argc, char ** argv)
 	/*  INPUT  */
 	Mat src;
 
-	bool show_time = false;
-	bool verbose = false;
-	bool show_other_filters = false;
+	bool show_time = true;
+	bool verbose = true;
+	bool show_other_filters = true;
 	int iterations = 1;
 	
 	if ( argc > 1 )
@@ -57,16 +57,13 @@ int main(int argc, char ** argv)
 	imshow("image with additive noise", noisy);
 
 	Mat dst;
-	Mat buffer;
-	noisy.copyTo(buffer);
 	noisy.copyTo(dst);
 
 	//restoration
 	double t;
-	int r = 1;
-	int w = dst.cols;
-	int h = dst.rows;
-	int dest = 0;
+	const int r = 1;
+	const int w = dst.cols;
+	const int h = dst.rows;
 
 	if( show_time )
 	{
@@ -74,17 +71,69 @@ int main(int argc, char ** argv)
 		t = getTickCount();
 	}
 
+	uchar** arrayP = new uchar*[h];
+	for (int i = 0; i < h; i++)
+	{
+		arrayP[i] = new uchar[w];
+	}
+	//omp_set_num_threads(4);
+	//#pragma omp parallel for
 	for(int it  = 0 ; it < iterations ; ++it)
 	{
+		//#pragma omp parallel for
 		for (int i = r; i < h - r; i++)
 		{
-			for (int j = r; j < w-r; j++)
+			//#pragma omp parallel for
+			for (int j = 0; j < w; j++)
 			{
-				dest = aaf_get_dst(buffer, i, j, r);
-				dst.at<uchar>(i, j) = aaf_get_approx(buffer, dest, i, j, r);
+				arrayP[i][j] = dst.at<uchar>(i, j);
 			}
 		}
-		dst.copyTo(buffer);
+
+		//#pragma omp parallel for
+		for (int i = r; i < h - r; i++)
+		{
+			//#pragma omp parallel for
+			for (int j = r; j < w - r; j++)
+			{
+				uchar ax = arrayP[i][j - r]; uchar bx = arrayP[i][j + r];
+				uchar ay = arrayP[i - r][j]; uchar by = arrayP[i + r][j];
+				uchar az1 = arrayP[i - r][j - r]; uchar bz1 = arrayP[i + r][j + r];
+				uchar az2 = arrayP[i - r][j + r]; uchar bz2 = arrayP[i + r][j - r];
+
+
+				uchar dx = abs(ax - bx);
+				uchar dy = abs(ay - by);
+				uchar dz1 = abs(az1 - bz1);
+				uchar dz2 = abs(az2 - bz2);
+
+				uchar min = dx;
+				uchar alg = 0;
+
+				if (min > dy)
+				{
+					min = dy;
+					alg = 1;
+				}
+				if (min > dz1)
+				{
+					min = dz1;
+					alg = 2;
+				}
+				if (min > dz2)
+					alg = 3;
+
+
+				if (alg == 0)
+					dst.at<uchar>(i, j) = (ax + bx)*.5;
+				if (alg == 1)
+					dst.at<uchar>(i, j) = (ay + by)*.5;
+				if (alg == 2)
+					dst.at<uchar>(i, j) = (az1 + bz1)*.5;
+				if (alg == 3)
+					dst.at<uchar>(i, j) = (az2 + bz2)*.5;
+			}
+		}
 	}
 	if( show_time )
 	{
@@ -92,13 +141,23 @@ int main(int argc, char ** argv)
 		cout << "time passed = " << t << endl;
 	}
 	/*  other filters  */
-	
+	t = getTickCount();
 	Mat median;
 	medianBlur(noisy, median, 3);
-	
+	if (show_time)
+	{
+		t = (getTickCount() - t) / getTickFrequency();
+		cout << "time passed = " << t << endl;
+	}
+	t = getTickCount();
+
 	Mat gaussian;
 	GaussianBlur(noisy, gaussian, Size(3,3), 0.0);
-
+	if (show_time)
+	{
+		t = (getTickCount() - t) / getTickFrequency();
+		cout << "time passed = " << t << endl;
+	}
 	/*  OUTPUT  */
 	imwrite("aff_3x3.bmp",    dst);
 	
@@ -107,7 +166,7 @@ int main(int argc, char ** argv)
 		imwrite("gauss_3x3.bmp",  gaussian);
 		imwrite("median_3x3.bmp", median);
 	}
-
+	//cout << (1 >> 1) << " " << (1 << 1);
 	if ( verbose )
 	{
 		imshow("restored image (aff)",      dst);
@@ -118,6 +177,7 @@ int main(int argc, char ** argv)
 		}
 		waitKey(0);
 	}
+	//waitKey(0);
 
 	return 0;
 }

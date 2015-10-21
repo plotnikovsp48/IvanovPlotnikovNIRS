@@ -19,9 +19,8 @@ designed by Ivanov and Plotnikov.
 #include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 #include <string>
-#include "aaf_get_dst.h"
-#include "aaf_get_approx.h"
 #include "noise_gen.h"
+//#include <omp.h>
 
 using namespace std;
 using namespace cv;
