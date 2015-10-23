@@ -5,10 +5,20 @@ int main(int argc, char ** argv)
 	/*  INPUT  */
 	Mat src;
 
+	//flags
 	bool show_time = true;
 	bool verbose = true;
 	bool show_other_filters = true;
+	
+	//noise gen parms
+	int gauss_stdev = 15;
+	double imp_p = 0.25;
+	int noise_type = 0;
+
+	//filtering parms
 	int iterations = 1;
+	int gauss_ksize = 3;
+	int med_ksize = gauss_ksize;
 	
 	if ( argc > 1 )
 		src = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
@@ -53,7 +63,7 @@ int main(int argc, char ** argv)
 	//adding noise
 	Mat noisy;
 	src.copyTo(noisy);
-	noise_gen(noisy, 0.25, 1);
+	noise_gen(noisy, gauss_stdev, imp_p, noise_type);
 	imshow("image with additive noise", noisy);
 
 	Mat dst;
@@ -138,33 +148,50 @@ int main(int argc, char ** argv)
 	if( show_time )
 	{
 		t = ( getTickCount() - t ) / getTickFrequency();
-		cout << "time passed = " << t << endl;
+		cout << "time passed (aaf) = " << t << endl;
 	}
+
 	/*  other filters  */
 	t = getTickCount();
 	Mat median;
-	medianBlur(noisy, median, 3);
+	medianBlur(noisy, median, med_ksize);
 	if (show_time)
 	{
 		t = (getTickCount() - t) / getTickFrequency();
-		cout << "time passed = " << t << endl;
+		cout << "time passed (median)= " << t << endl;
 	}
 	t = getTickCount();
 
 	Mat gaussian;
-	GaussianBlur(noisy, gaussian, Size(3,3), 0.0);
+	GaussianBlur(noisy, gaussian, Size(gauss_ksize, gauss_ksize), 0.0);
 	if (show_time)
 	{
 		t = (getTickCount() - t) / getTickFrequency();
-		cout << "time passed = " << t << endl;
+		cout << "time passed (gauss)= " << t << endl;
 	}
+
 	/*  OUTPUT  */
-	imwrite("aff_3x3.bmp",    dst);
+	std::stringstream ss;
+	ss << "aff_3x3_" << iterations << ".bmp";
+	imwrite(ss.str(), dst);
 	
 	if( show_other_filters )
 	{
-		imwrite("gauss_3x3.bmp",  gaussian);
-		imwrite("median_3x3.bmp", median);
+		std::stringstream ss;
+		ss << "gauss_" << gauss_ksize << "x" << gauss_ksize << ".bmp";
+		imwrite(ss.str(),  gaussian);
+
+		std::stringstream s;
+		s << "median_" << med_ksize << "x" << med_ksize << ".bmp";
+		imwrite(s.str(), median);
+
+		std::stringstream sss;
+		if( noise_type == 1)
+			sss << "noise_gauss_" << gauss_stdev;
+		if( noise_type == 0)
+			sss << "noise_impulse_" << imp_p;
+		sss << ".bmp";
+		imwrite(sss.str(), noisy);
 	}
 	//cout << (1 >> 1) << " " << (1 << 1);
 	if ( verbose )

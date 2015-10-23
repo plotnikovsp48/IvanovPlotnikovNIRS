@@ -14,8 +14,9 @@ using namespace cv;
 
 int noise_gen (
 	Mat img,                    //input image (is changed after generation)
+	int gauss_stdev = 5,        //standard deviation for AWGN
 	double intensity = 0.25,    //intensity of noise
-	int type = SIMPLE_NOISE   //type of noise generator
+	int type = GAUSSIAN_NOISE   //type of noise generator
 	);
 
 #endif

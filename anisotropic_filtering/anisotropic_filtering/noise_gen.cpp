@@ -2,6 +2,7 @@
 
 int noise_gen (
 	Mat img,                    //input image (is changed after generation)
+	int gauss_stdev,            //standard deviation for AWGN
 	double intensity,			//intensity of noise
 	int type					//type of noise generator
 	)
@@ -25,20 +26,16 @@ int noise_gen (
 
 		case GAUSSIAN_NOISE :
 		{
-			/*
-			int mean = 128;
-			int stddev = 50;
-			Mat noise(img.rows, img.cols, CV_8U);
+
+			int mean = 0;
+			int stddev = 15;
+			Mat noise(img.rows, img.cols, CV_8S);
 			randn(noise, mean, stddev);
-			addWeighted(img, 0.5, noise, 0.5, 0, img);
-			*/
-			int N = GAUSSIAN_ITERATIONS;
-			srand((unsigned)time(0));
-			for( int it = 0 ; it < N ; ++it )
-				for (int i = 0; i < w * h * (intensity / (N + 0.0)); i++)
-				{
-					img.at<uchar>(rand() % h, rand() % w) = uchar(rand() % 256);  //высота на ширину
-				}
+			//addWeighted(img, 0.7, noise, 0.7, 0, img);
+			for( int i = 0 ; i < img.rows ; ++i )
+				for( int j = 0 ; j < img.cols ;++j )
+					img.at<uchar>(i,j) = cv::saturate_cast<uchar>(img.at<uchar>(i,j)+noise.at<char>(i,j));
+
 		} break;
 
 		default:
